@@ -39,10 +39,12 @@ export default function SortingCeremony({ houses, onRestart }: SortingCeremonyPr
         [selectedHouse.name]: prev[selectedHouse.name] - 1
       }));
       
-      // Play audio if available (placeholder for now)
+      // Play house-specific audio
       if (audioRef.current) {
-        audioRef.current.play().catch(() => {
-          // Audio play failed - this is fine for now
+        const audioFileName = selectedHouse.name.toLowerCase() + '.mp3';
+        audioRef.current.src = `/audio/${audioFileName}`;
+        audioRef.current.play().catch((error) => {
+          console.log('Audio play failed:', error);
         });
       }
       
@@ -145,14 +147,28 @@ export default function SortingCeremony({ houses, onRestart }: SortingCeremonyPr
           </button>
         </div>
 
-        {/* Audio placeholder */}
+        {/* Audio element for house announcements */}
         <audio
           ref={audioRef}
           preload="none"
           className="hidden"
-        >
-          {/* Audio source will be added when you provide the files */}
-        </audio>
+        />
+        
+        {/* Preload all audio files for better performance */}
+        <div className="hidden">
+          <audio preload="metadata">
+            <source src="/audio/gryffindor.mp3" type="audio/mpeg" />
+          </audio>
+          <audio preload="metadata">
+            <source src="/audio/hufflepuff.mp3" type="audio/mpeg" />
+          </audio>
+          <audio preload="metadata">
+            <source src="/audio/ravenclaw.mp3" type="audio/mpeg" />
+          </audio>
+          <audio preload="metadata">
+            <source src="/audio/slytherin.mp3" type="audio/mpeg" />
+          </audio>
+        </div>
       </div>
     </div>
   );
