@@ -24,6 +24,15 @@ export default function SortingCeremony({ houses, onRestart }: SortingCeremonyPr
 
     setIsAnimating(true);
     
+    // Play thinking audio immediately
+    if (audioRef.current) {
+      const thinkingAudio = Math.random() < 0.5 ? 'hat_thinking1.mp3' : 'hat_thinking2.mp3';
+      audioRef.current.src = `/audio/${thinkingAudio}`;
+      audioRef.current.play().catch((error) => {
+        console.log('Thinking audio play failed:', error);
+      });
+    }
+    
     // Get houses with available seats
     const availableHouses = houses.filter(house => availableSeats[house.name] > 0);
     
@@ -39,12 +48,12 @@ export default function SortingCeremony({ houses, onRestart }: SortingCeremonyPr
         [selectedHouse.name]: prev[selectedHouse.name] - 1
       }));
       
-      // Play house-specific audio
+      // Play house-specific audio after thinking
       if (audioRef.current) {
         const audioFileName = selectedHouse.name.toLowerCase() + '.mp3';
         audioRef.current.src = `/audio/${audioFileName}`;
         audioRef.current.play().catch((error) => {
-          console.log('Audio play failed:', error);
+          console.log('House audio play failed:', error);
         });
       }
       
@@ -156,6 +165,12 @@ export default function SortingCeremony({ houses, onRestart }: SortingCeremonyPr
         
         {/* Preload all audio files for better performance */}
         <div className="hidden">
+          <audio preload="metadata">
+            <source src="/audio/hat_thinking1.mp3" type="audio/mpeg" />
+          </audio>
+          <audio preload="metadata">
+            <source src="/audio/hat_thinking2.mp3" type="audio/mpeg" />
+          </audio>
           <audio preload="metadata">
             <source src="/audio/gryffindor.mp3" type="audio/mpeg" />
           </audio>
