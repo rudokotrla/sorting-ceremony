@@ -21,7 +21,8 @@ export default function SortingCeremony({
     )
   );
   const [lastSorted, setLastSorted] = useState<string | null>(null);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [isThinking, setIsThinking] = useState(false);
+  const [isAnnouncing, setIsAnnouncing] = useState(false);
   const [selectedHouse, setSelectedHouse] = useState<House | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -41,6 +42,7 @@ export default function SortingCeremony({
         ...prev,
         [selectedHouse.name]: prev[selectedHouse.name] - 1,
       }));
+      setIsAnnouncing(true);
 
       // Play house-specific audio after thinking
       if (audioRef.current) {
@@ -51,7 +53,7 @@ export default function SortingCeremony({
         });
       }
 
-      setIsAnimating(false);
+      setIsThinking(false);
       setSelectedHouse(null); // Clear selected house
     };
 
@@ -63,10 +65,27 @@ export default function SortingCeremony({
     };
   }, [selectedHouse]); // Re-run when selectedHouse changes
 
-  const askSortingHat = () => {
-    if (totalRemainingSeats === 0 || isAnimating) return;
+  // Effect to handle house announcement audio ending
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !isAnnouncing) return;
 
-    setIsAnimating(true);
+    const handleAnnouncementEnd = () => {
+      setIsAnnouncing(false);
+    };
+
+    audio.addEventListener("ended", handleAnnouncementEnd);
+
+    // Cleanup function
+    return () => {
+      audio.removeEventListener("ended", handleAnnouncementEnd);
+    };
+  }, [isAnnouncing]); // Re-run when isAnnouncing changes
+
+  const askSortingHat = () => {
+    if (totalRemainingSeats === 0 || isThinking) return;
+
+    setIsThinking(true);
 
     // Get houses with available seats
     const availableHouses = houses.filter(
@@ -95,14 +114,14 @@ export default function SortingCeremony({
             ...prev,
             [selectedHouse.name]: prev[selectedHouse.name] - 1,
           }));
-          setIsAnimating(false);
+          setIsThinking(false);
           setSelectedHouse(null);
         }, 2000);
       });
     }
   };
 
-  if (totalRemainingSeats === 0) {
+  if (totalRemainingSeats === 0 && !isAnnouncing) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-6">
         <div className="max-w-md mx-auto text-center">
@@ -139,7 +158,7 @@ export default function SortingCeremony({
         </div>
 
         {/* Last sorted announcement */}
-        {lastSorted && !isAnimating && (
+        {lastSorted && !isThinking && (
           <div className="mb-8 p-6 bg-slate-800/50 rounded-2xl border border-amber-500/30 backdrop-blur-sm shadow-xl animate-pulse">
             <div className="text-center">
               <h2 className="text-2xl font-bold text-amber-200 mb-4 tracking-wide">
@@ -157,9 +176,9 @@ export default function SortingCeremony({
         <div className="text-center mb-8">
           <button
             onClick={askSortingHat}
-            disabled={isAnimating}
+            disabled={isThinking || isAnnouncing}
             className={`flex gap-x-3 items-center justify-center w-full py-4 px-6 rounded-2xl font-semibold text-xl transition-all duration-300 ${
-              isAnimating
+              isThinking || isAnnouncing
                 ? "bg-slate-700/50 text-slate-500 cursor-not-allowed"
                 : "bg-gradient-to-r from-amber-700/80 to-amber-600/80 hover:from-amber-600/90 hover:to-amber-500/90 text-amber-50 shadow-lg hover:shadow-amber-500/25 hover:scale-105"
             }`}
@@ -171,7 +190,13 @@ export default function SortingCeremony({
               height={512}
               className="size-12"
             />
-            <span>{isAnimating ? "Thinking..." : "Ask Sorting Hat"}</span>
+            <span>
+              {isThinking
+                ? "Thinking..."
+                : isAnnouncing
+                ? "Announcing..."
+                : "Ask Sorting Hat"}
+            </span>
           </button>
         </div>
 
