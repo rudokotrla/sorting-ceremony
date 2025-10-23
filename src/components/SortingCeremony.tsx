@@ -104,17 +104,17 @@ export default function SortingCeremony({
 
   if (totalRemainingSeats === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-purple-900 via-blue-900 to-black text-white p-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-6">
         <div className="max-w-md mx-auto text-center">
-          <h1 className="text-3xl font-bold mb-8 text-yellow-400 font-magic">
+          <h1 className="text-3xl font-bold mb-10 text-amber-100 tracking-wide">
             Sorting Complete!
           </h1>
-          <p className="text-xl text-gray-300 mb-8">
+          <p className="text-xl text-slate-300 mb-10">
             All students have been sorted into their houses.
           </p>
           <button
             onClick={onRestart}
-            className="w-full py-3 px-6 rounded-lg font-bold text-lg bg-yellow-600 hover:bg-yellow-500 text-black shadow-lg hover:shadow-xl transition-colors"
+            className="w-full py-4 px-6 rounded-2xl font-semibold text-lg bg-gradient-to-r from-amber-600/80 to-amber-500/80 hover:from-amber-500/90 hover:to-amber-400/90 text-amber-50 shadow-lg hover:shadow-amber-500/25 hover:scale-105 transition-all duration-300"
           >
             Start New Ceremony
           </button>
@@ -124,15 +124,15 @@ export default function SortingCeremony({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-900 via-blue-900 to-black text-white p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-6">
       <div className="max-w-md mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2 text-yellow-400 font-magic">
+        <div className="text-center mb-10">
+          <h1 className="text-3xl font-bold mb-3 text-amber-100 tracking-wide">
             Sorting Ceremony
           </h1>
-          <p className="text-lg text-gray-300">
+          <p className="text-lg text-slate-300">
             Students remaining:{" "}
-            <span className="text-yellow-400 font-bold">
+            <span className="text-amber-200 font-semibold">
               {totalRemainingSeats}
             </span>
           </p>
@@ -140,9 +140,9 @@ export default function SortingCeremony({
 
         {/* Last sorted announcement */}
         {lastSorted && !isAnimating && (
-          <div className="mb-8 p-6 bg-gray-800 rounded-lg border-2 border-yellow-400 animate-pulse">
+          <div className="mb-8 p-6 bg-slate-800/50 rounded-2xl border border-amber-500/30 backdrop-blur-sm shadow-xl animate-pulse">
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-yellow-400 mb-4 font-magic">
+              <h2 className="text-2xl font-bold text-amber-200 mb-4 tracking-wide">
                 {lastSorted}!
               </h2>
               <HouseEmblem
@@ -158,10 +158,10 @@ export default function SortingCeremony({
           <button
             onClick={askSortingHat}
             disabled={isAnimating}
-            className={`flex gap-x-2 items-center justify-center w-full py-2 px-4 rounded-lg font-bold text-xl transition-all duration-300 ${
+            className={`flex gap-x-3 items-center justify-center w-full py-4 px-6 rounded-2xl font-semibold text-xl transition-all duration-300 ${
               isAnimating
-                ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                : "bg-amber-700 hover:bg-amber-600 text-yellow-100 shadow-lg hover:shadow-xl transform hover:scale-105"
+                ? "bg-slate-700/50 text-slate-500 cursor-not-allowed"
+                : "bg-gradient-to-r from-amber-700/80 to-amber-600/80 hover:from-amber-600/90 hover:to-amber-500/90 text-amber-50 shadow-lg hover:shadow-amber-500/25 hover:scale-105"
             }`}
           >
             <Image
@@ -180,18 +180,20 @@ export default function SortingCeremony({
           {houses.map((house) => (
             <div
               key={house.name}
-              className={`${house.bgColor} rounded-lg p-4 border-2 ${
+              className={`${house.bgColor} rounded-2xl p-5 border ${
                 house.borderColor
-              } ${availableSeats[house.name] === 0 ? "opacity-50" : ""}`}
+              } backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 ${
+                availableSeats[house.name] === 0 ? "opacity-40" : ""
+              }`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <HouseEmblem houseName={house.name} className="w-12 h-12" />
-                  <h3 className={`text-lg font-bold ${house.textColor}`}>
+                  <h3 className={`text-lg font-semibold ${house.textColor}`}>
                     {house.name}
                   </h3>
                 </div>
-                <div className={`text-lg font-bold ${house.textColor}`}>
+                <div className={`text-lg font-semibold ${house.textColor}`}>
                   {availableSeats[house.name]} seats
                 </div>
               </div>
@@ -199,10 +201,10 @@ export default function SortingCeremony({
           ))}
         </div>
 
-        <div className="mt-8 text-center">
+        <div className="mt-10 text-center">
           <button
             onClick={onRestart}
-            className="text-gray-400 hover:text-white underline transition-colors"
+            className="text-slate-400 hover:text-amber-200 underline transition-colors duration-200"
           >
             Restart Ceremony
           </button>
