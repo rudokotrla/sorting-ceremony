@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { House } from "@/types/house";
 import HouseEmblem from "./HouseEmblem";
+import Image from "next/image";
 
 interface SortingCeremonyProps {
   houses: House[];
@@ -157,13 +158,20 @@ export default function SortingCeremony({
           <button
             onClick={askSortingHat}
             disabled={isAnimating}
-            className={`w-full py-4 px-6 rounded-lg font-bold text-xl transition-all duration-300 ${
+            className={`flex gap-x-2 items-center justify-center w-full py-2 px-4 rounded-lg font-bold text-xl transition-all duration-300 ${
               isAnimating
                 ? "bg-gray-600 text-gray-400 cursor-not-allowed"
                 : "bg-amber-700 hover:bg-amber-600 text-yellow-100 shadow-lg hover:shadow-xl transform hover:scale-105"
             }`}
           >
-            {isAnimating ? "🎩 Thinking..." : "🎩 Ask Sorting Hat"}
+            <Image
+              src="/images/sorting_hat.png"
+              alt="Sorting Hat"
+              width={512}
+              height={512}
+              className="size-12"
+            />
+            <span>{isAnimating ? "Thinking..." : "Ask Sorting Hat"}</span>
           </button>
         </div>
 
