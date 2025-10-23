@@ -1,67 +1,105 @@
-'use client';
+"use client";
 
-import { useState, useRef } from 'react';
-import { House } from '@/types/house';
-import HouseEmblem from './HouseEmblem';
+import { useState, useRef, useEffect } from "react";
+import { House } from "@/types/house";
+import HouseEmblem from "./HouseEmblem";
 
 interface SortingCeremonyProps {
   houses: House[];
   onRestart: () => void;
 }
 
-export default function SortingCeremony({ houses, onRestart }: SortingCeremonyProps) {
-  const [availableSeats, setAvailableSeats] = useState(() => 
-    houses.reduce((acc, house) => ({ ...acc, [house.name]: house.seats }), {} as Record<string, number>)
+export default function SortingCeremony({
+  houses,
+  onRestart,
+}: SortingCeremonyProps) {
+  const [availableSeats, setAvailableSeats] = useState(() =>
+    houses.reduce(
+      (acc, house) => ({ ...acc, [house.name]: house.seats }),
+      {} as Record<string, number>
+    )
   );
   const [lastSorted, setLastSorted] = useState<string | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [selectedHouse, setSelectedHouse] = useState<House | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  const totalRemainingSeats = Object.values(availableSeats).reduce((sum, count) => sum + count, 0);
+  const totalRemainingSeats = Object.values(availableSeats).reduce(
+    (sum, count) => sum + count,
+    0
+  );
+
+  // Effect to handle audio ended event
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !selectedHouse) return;
+
+    const handleThinkingEnd = () => {
+      setLastSorted(selectedHouse.name);
+      setAvailableSeats((prev) => ({
+        ...prev,
+        [selectedHouse.name]: prev[selectedHouse.name] - 1,
+      }));
+
+      // Play house-specific audio after thinking
+      if (audioRef.current) {
+        const audioFileName = selectedHouse.name.toLowerCase() + ".mp3";
+        audioRef.current.src = `/audio/${audioFileName}`;
+        audioRef.current.play().catch((error) => {
+          console.log("House audio play failed:", error);
+        });
+      }
+
+      setIsAnimating(false);
+      setSelectedHouse(null); // Clear selected house
+    };
+
+    audio.addEventListener("ended", handleThinkingEnd);
+
+    // Cleanup function
+    return () => {
+      audio.removeEventListener("ended", handleThinkingEnd);
+    };
+  }, [selectedHouse]); // Re-run when selectedHouse changes
 
   const askSortingHat = () => {
     if (totalRemainingSeats === 0 || isAnimating) return;
 
     setIsAnimating(true);
-    
-    // Play thinking audio immediately
-    if (audioRef.current) {
-      const thinkingAudio = Math.random() < 0.5 ? 'hat_thinking1.mp3' : 'hat_thinking2.mp3';
-      audioRef.current.src = `/audio/${thinkingAudio}`;
-      audioRef.current.play().catch((error) => {
-        console.log('Thinking audio play failed:', error);
-      });
-    }
-    
+
     // Get houses with available seats
-    const availableHouses = houses.filter(house => availableSeats[house.name] > 0);
-    
+    const availableHouses = houses.filter(
+      (house) => availableSeats[house.name] > 0
+    );
+
     // Randomly select a house
     const randomIndex = Math.floor(Math.random() * availableHouses.length);
     const selectedHouse = availableHouses[randomIndex];
 
-    // Simulate thinking time
-    setTimeout(() => {
-      setLastSorted(selectedHouse.name);
-      setAvailableSeats(prev => ({
-        ...prev,
-        [selectedHouse.name]: prev[selectedHouse.name] - 1
-      }));
-      
-      // Play house-specific audio after thinking
-      if (audioRef.current) {
-        const audioFileName = selectedHouse.name.toLowerCase() + '.mp3';
-        audioRef.current.src = `/audio/${audioFileName}`;
-        audioRef.current.play().catch((error) => {
-          console.log('House audio play failed:', error);
-        });
-      }
-      
-      setIsAnimating(false);
-    }, 2000);
-  };
+    // Set the selected house (this will trigger the useEffect)
+    setSelectedHouse(selectedHouse);
 
-  const getHouseByName = (name: string) => houses.find(house => house.name === name);
+    // Play thinking audio immediately
+    if (audioRef.current) {
+      const thinkingAudio =
+        Math.random() < 0.5 ? "hat_thinking1.mp3" : "hat_thinking2.mp3";
+      audioRef.current.src = `/audio/${thinkingAudio}`;
+
+      audioRef.current.play().catch((error) => {
+        console.log("Thinking audio play failed:", error);
+        // If audio fails to play, fallback to timeout
+        setTimeout(() => {
+          setLastSorted(selectedHouse.name);
+          setAvailableSeats((prev) => ({
+            ...prev,
+            [selectedHouse.name]: prev[selectedHouse.name] - 1,
+          }));
+          setIsAnimating(false);
+          setSelectedHouse(null);
+        }, 2000);
+      });
+    }
+  };
 
   if (totalRemainingSeats === 0) {
     return (
@@ -92,7 +130,10 @@ export default function SortingCeremony({ houses, onRestart }: SortingCeremonyPr
             Sorting Ceremony
           </h1>
           <p className="text-lg text-gray-300">
-            Students remaining: <span className="text-yellow-400 font-bold">{totalRemainingSeats}</span>
+            Students remaining:{" "}
+            <span className="text-yellow-400 font-bold">
+              {totalRemainingSeats}
+            </span>
           </p>
         </div>
 
@@ -103,7 +144,10 @@ export default function SortingCeremony({ houses, onRestart }: SortingCeremonyPr
               <h2 className="text-2xl font-bold text-yellow-400 mb-4 font-magic">
                 {lastSorted}!
               </h2>
-              <HouseEmblem houseName={lastSorted} className="w-32 h-32 mx-auto" />
+              <HouseEmblem
+                houseName={lastSorted}
+                className="w-32 h-32 mx-auto"
+              />
             </div>
           </div>
         )}
@@ -114,23 +158,23 @@ export default function SortingCeremony({ houses, onRestart }: SortingCeremonyPr
             onClick={askSortingHat}
             disabled={isAnimating}
             className={`w-full py-4 px-6 rounded-lg font-bold text-xl transition-all duration-300 ${
-              isAnimating 
-                ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                : 'bg-amber-700 hover:bg-amber-600 text-yellow-100 shadow-lg hover:shadow-xl transform hover:scale-105'
+              isAnimating
+                ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                : "bg-amber-700 hover:bg-amber-600 text-yellow-100 shadow-lg hover:shadow-xl transform hover:scale-105"
             }`}
           >
-            {isAnimating ? '🎩 Thinking...' : '🎩 Ask Sorting Hat'}
+            {isAnimating ? "🎩 Thinking..." : "🎩 Ask Sorting Hat"}
           </button>
         </div>
 
         {/* House seats display */}
         <div className="space-y-4">
           {houses.map((house) => (
-            <div 
-              key={house.name} 
-              className={`${house.bgColor} rounded-lg p-4 border-2 ${house.borderColor} ${
-                availableSeats[house.name] === 0 ? 'opacity-50' : ''
-              }`}
+            <div
+              key={house.name}
+              className={`${house.bgColor} rounded-lg p-4 border-2 ${
+                house.borderColor
+              } ${availableSeats[house.name] === 0 ? "opacity-50" : ""}`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
@@ -157,12 +201,8 @@ export default function SortingCeremony({ houses, onRestart }: SortingCeremonyPr
         </div>
 
         {/* Audio element for house announcements */}
-        <audio
-          ref={audioRef}
-          preload="none"
-          className="hidden"
-        />
-        
+        <audio ref={audioRef} preload="none" className="hidden" />
+
         {/* Preload all audio files for better performance */}
         <div className="hidden">
           <audio preload="metadata">
